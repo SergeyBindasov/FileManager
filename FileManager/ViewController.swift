@@ -76,6 +76,7 @@ extension ViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .default, reuseIdentifier: "cell")
         let folderName = content[indexPath.row].path
+        cell.accessoryType = .disclosureIndicator
         cell.textLabel!.text = fileManager.displayName(atPath: folderName)
         return cell
     }
