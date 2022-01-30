@@ -13,6 +13,7 @@ class ViewController: UIViewController {
     
     var content: [URL] = []
     var newFolder: URL?
+    var folder: Int = 0
     
     @IBOutlet weak var fileTableview: UITableView!
     
@@ -58,14 +59,21 @@ extension ViewController {
         fileTableview.reloadData()
         return documentsURL
     }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "folder" {
+            let vc = segue.destination as! FolderViewController
+            vc.title = fileManager.displayName(atPath: content[folder].path)
+        }
+    }
 }
 
 // MARK:  TableView Methods
 extension ViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print(fileManager.displayName(atPath: content[indexPath.row].path))
+        folder = indexPath.row
+        performSegue(withIdentifier: "folder", sender: self)
     }
-    
 }
 
 extension ViewController: UITableViewDataSource {
@@ -75,10 +83,10 @@ extension ViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .default, reuseIdentifier: "cell")
+        cell.selectionStyle = .none
         let folderName = content[indexPath.row].path
         cell.accessoryType = .disclosureIndicator
         cell.textLabel!.text = fileManager.displayName(atPath: folderName)
         return cell
     }
-    
 }
