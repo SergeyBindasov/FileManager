@@ -17,16 +17,57 @@ class FolderViewController: UIViewController {
     @IBOutlet weak var subfolderTableView: UITableView!
     
     @IBAction func addNewItem(_ sender: UIBarButtonItem) {
+        
+    
+        let picker = UIImagePickerController()
+        picker.delegate = self
+        present(picker, animated: true, completion: nil)
+        
         print("pic")
     }
     
     @IBAction func addSubfolder(_ sender: UIBarButtonItem) {
-        print("folder")
+        var folder = UITextField()
+        
+        let alert = UIAlertController(title: "Создать новую папку", message: "", preferredStyle: .alert)
+        let action = UIAlertAction(title: "Добавить", style: .default) { action in
+            guard let text = folder.text else { return }
+            self.newItem = self.loadContent().appendingPathComponent(text)
+            guard let folder = self.newItem else { return }
+            do {
+                try self.fileManager.createDirectory(at: folder, withIntermediateDirectories: true, attributes: [:])
+            } catch {
+                print(error)
+            }
+            DispatchQueue.main.async {
+                self.loadContent()
+            }
+        }
+            alert.addTextField { textField in
+                textField.placeholder = "Новая папка"
+                folder = textField
+            }
+            alert.addAction(action)
+            present(alert, animated: true, completion: nil)
     }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         subfolderTableView.delegate = self
         subfolderTableView.dataSource = self
+        loadContent()
+    }
+}
+
+extension FolderViewController {
+    func loadContent() -> URL {
+        let documentsURL = try! fileManager.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
+        guard let titleDir = title else { return documentsURL}
+        let subdirectory = documentsURL.appendingPathComponent(titleDir)
+        subfolderContent = try! fileManager.contentsOfDirectory(at: subdirectory, includingPropertiesForKeys: nil, options: [])
+        subfolderTableView.reloadData()
+        print(documentsURL.path)
+        return subdirectory
     }
 }
 
@@ -41,9 +82,20 @@ extension FolderViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .default, reuseIdentifier: "folderCell")
-        
+        let itemName = subfolderContent[indexPath.row].path
+        cell.textLabel!.text = fileManager.displayName(atPath: itemName)
         return cell
     }
 }
+
+extension FolderViewController: UIImagePickerControllerDelegate {
+    
+}
+
+extension FolderViewController: UINavigationControllerDelegate {
+    
+}
+
+
 
 
