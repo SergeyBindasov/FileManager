@@ -30,7 +30,7 @@ class FolderViewController: UIViewController {
         let alert = UIAlertController(title: "Создать новую папку", message: "", preferredStyle: .alert)
         let action = UIAlertAction(title: "Добавить", style: .default) { action in
             guard let text = folder.text else { return }
-            self.newItem = self.loadContent().appendingPathComponent(text)
+            self.newItem = self.createSubfolder().appendingPathComponent(text)
             guard let folder = self.newItem else { return }
             do {
                 try self.fileManager.createDirectory(at: folder, withIntermediateDirectories: true, attributes: [:])
@@ -58,14 +58,18 @@ class FolderViewController: UIViewController {
 }
 
 extension FolderViewController {
-    func loadContent() -> URL {
+    func createSubfolder() -> URL {
         let documentsURL = try! fileManager.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
         guard let titleDir = title else { return documentsURL}
         let subdirectory = documentsURL.appendingPathComponent(titleDir)
-        subfolderContent = try! fileManager.contentsOfDirectory(at: subdirectory, includingPropertiesForKeys: nil, options: [])
-        subfolderTableView.reloadData()
         return subdirectory
     }
+    
+    func loadContent() {
+        subfolderContent = try! fileManager.contentsOfDirectory(at: createSubfolder(), includingPropertiesForKeys: nil, options: [])
+        subfolderTableView.reloadData()
+    }
+    
 }
 
 extension FolderViewController: UITableViewDelegate {
@@ -93,8 +97,7 @@ extension FolderViewController: UIImagePickerControllerDelegate {
         if let editedImage = info[UIImagePickerController.InfoKey.editedImage] as? UIImage {
             
             let imageName = UUID().uuidString
-            let path = loadContent().appendingPathComponent(imageName)
-            
+            let path = createSubfolder().appendingPathComponent(imageName)
             if let jpegData = editedImage.jpegData(compressionQuality: 0.8) {
                 try? jpegData.write(to: path)
             }
