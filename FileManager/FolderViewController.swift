@@ -18,12 +18,10 @@ class FolderViewController: UIViewController {
     
     @IBAction func addNewItem(_ sender: UIBarButtonItem) {
         
-    
         let picker = UIImagePickerController()
         picker.delegate = self
+        picker.allowsEditing = true
         present(picker, animated: true, completion: nil)
-        
-        print("pic")
     }
     
     @IBAction func addSubfolder(_ sender: UIBarButtonItem) {
@@ -43,12 +41,12 @@ class FolderViewController: UIViewController {
                 self.loadContent()
             }
         }
-            alert.addTextField { textField in
-                textField.placeholder = "Новая папка"
-                folder = textField
-            }
-            alert.addAction(action)
-            present(alert, animated: true, completion: nil)
+        alert.addTextField { textField in
+            textField.placeholder = "Новая папка"
+            folder = textField
+        }
+        alert.addAction(action)
+        present(alert, animated: true, completion: nil)
     }
     
     override func viewDidLoad() {
@@ -66,12 +64,14 @@ extension FolderViewController {
         let subdirectory = documentsURL.appendingPathComponent(titleDir)
         subfolderContent = try! fileManager.contentsOfDirectory(at: subdirectory, includingPropertiesForKeys: nil, options: [])
         subfolderTableView.reloadData()
-        print(documentsURL.path)
         return subdirectory
     }
 }
 
 extension FolderViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print(subfolderContent[indexPath.row].path)
+    }
     
 }
 
@@ -89,13 +89,22 @@ extension FolderViewController: UITableViewDataSource {
 }
 
 extension FolderViewController: UIImagePickerControllerDelegate {
-    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        if let editedImage = info[UIImagePickerController.InfoKey.editedImage] as? UIImage {
+            
+            let imageName = UUID().uuidString
+            let path = loadContent().appendingPathComponent(imageName)
+            
+            if let jpegData = editedImage.jpegData(compressionQuality: 0.8) {
+                try? jpegData.write(to: path)
+            }
+        }
+        DispatchQueue.main.async {
+            self.loadContent()
+        }
+        dismiss(animated: true, completion: nil)
+    }
 }
 
 extension FolderViewController: UINavigationControllerDelegate {
-    
 }
-
-
-
-

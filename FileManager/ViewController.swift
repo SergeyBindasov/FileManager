@@ -24,7 +24,7 @@ class ViewController: UIViewController {
         let alert = UIAlertController(title: "Создать новую папку", message: "", preferredStyle: .alert)
         let action = UIAlertAction(title: "Добавить", style: .default) { action in
             guard let text = folder.text else { return }
-            self.newFolder = self.loadContent().appendingPathComponent(text)
+            self.newFolder = self.createUrl().appendingPathComponent(text)
             guard let folder = self.newFolder else { return }
             do {
                 try self.fileManager.createDirectory(at: folder, withIntermediateDirectories: true, attributes: [:])
@@ -45,19 +45,22 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         fileTableview.delegate = self
         fileTableview.dataSource = self
         loadContent()
     }
 }
+
 // MARK:  Class Methods
 extension ViewController {
-    func loadContent() -> URL {
+    func createUrl() -> URL {
         let documentsURL = try! fileManager.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
-        content = try! fileManager.contentsOfDirectory(at: documentsURL, includingPropertiesForKeys: nil, options: [])
-        fileTableview.reloadData()
         return documentsURL
+    }
+    
+    func loadContent() {
+        content = try! fileManager.contentsOfDirectory(at: createUrl(), includingPropertiesForKeys: nil, options: [])
+        fileTableview.reloadData()
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
